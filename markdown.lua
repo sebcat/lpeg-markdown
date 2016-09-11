@@ -10,7 +10,7 @@ local S = lpeg.S
 local C = lpeg.C
 local Cc = lpeg.Cc
 local Ct = lpeg.Ct
-
+local Cmt = lpeg.Cmt
 
 local function markdown_grammar()
   local trim = function(str)
@@ -29,17 +29,29 @@ local function markdown_grammar()
     return string.format("<li>%s</li>", trim(str))
   end
 
+  local concat_link = function(s, i, name, href)
+    return true, string.format("<a href=\"%s\">%s</a>", href, name)
+  end
+
+  local concat_matches = function(s, i, vals)
+    return i, table.concat(vals)
+  end
+
   return P{
     "markdown";
     NL = (P"\r"^-1 * P"\n")+-1,
     WS = S"\t ",
     OPTWS = V"WS"^0,
+    linkname = (1-P"]")^0,
+    linkref = (1-P")")^0,
+    link = Cmt(P"[" * C(V"linkname") * P"]" * P"(" * C(V"linkref") * P")", concat_link),
+    line = Cmt(Ct((V"link" + C((1-V"NL")))^1), concat_matches),
+    lines = ((V"line")*V"NL")^1,
+    paragraph = Cc"<p>" * V"lines" * V"NL" * Cc"</p>",
     ulli = P"*" * V"OPTWS" * ((1-V"NL")^0/li) * V"NL",
     ul = Cc"<ul>" * V"ulli"^1 * Cc"</ul>",
     olli = R"09"^1 * P"." * V"OPTWS"* ((1-V"NL")^0/li) * V"NL",
     ol = Cc"<ol>" * V"olli"^1 * Cc"</ol>",
-    text = (((1-V"NL")^1)*V"NL")^1,
-    paragraph = Cc"<p>" * (V"text"/trim) * V"NL" * Cc"</p>",
     content = V"ul" + V"ol" + V"paragraph",
     h1 = header_grammar(1),
     h2 = header_grammar(2),

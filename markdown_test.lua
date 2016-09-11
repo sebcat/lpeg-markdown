@@ -57,8 +57,11 @@ expect("1.foo\n2.bar", "<ol><li>foo</li><li>bar</li></ol>")
 
 -- paragraphs
 expect("What a lovely day", "<p>What a lovely day</p>")
-expect("What a \nlovely day", "<p>What a \nlovely day</p>")
+expect("What a \nlovely day", "<p>What a lovely day</p>")
 expect("\r\nWhat a lovely day\n\nInnit?", "<p>What a lovely day</p><p>Innit?</p>")
+
+-- links
+expect("Hello good sir/madam\n\nVisit [example](http://example.com/) or dont", "<p>Hello good sir/madam</p><p>Visit <a href=\"http://example.com/\">example</a> or dont</p>")
 
 expect([[
 #The party
