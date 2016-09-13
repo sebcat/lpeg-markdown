@@ -12,6 +12,8 @@ function expect(data, expected)
   end
 end
 
+local startt = os.clock()
+
 -- h1
 expect("#", "<h1></h1>")
 expect("# ", "<h1></h1>")
@@ -63,18 +65,32 @@ expect("\r\nWhat a lovely day\n\nInnit?", "<p>What a lovely day</p><p>Innit?</p>
 -- links
 expect("Hello good sir/madam\n\nVisit [example](http://example.com/) or dont", "<p>Hello good sir/madam</p><p>Visit <a href=\"http://example.com/\">example</a> or dont</p>")
 
+-- text attributes
+expect("Say *foo bar*", "<p>Say <em>foo bar</em></p>")
+expect("foo **foo*bar**", "<p>foo <strong>foo*bar</strong></p>")
+expect("foo `  *foo*bar  `", "<p>foo <code>*foo*bar</code></p>")
+
 expect([[
 #The party
 
-Once, there was a party.
+Once, there was a **party**.
 
 There was:
 
-* food, and
-* drinks
+* *food*, and
+* *drinks*
 
 I
 
-1. ate, and
-2. I drank]], "<h1>The party</h1><p>Once, there was a party.</p><p>There was:</p><ul><li>food, and</li><li>drinks</li></ul><p>I</p><ol><li>ate, and</li><li>I drank</li></ol>")
+1. *ate*, and
+2. I *drank*
 
+After the party, someone showed me the following code:
+
+````
+import gravity
+````
+
+He even gave me his [e-mail](mailto:foo@example.com)
+]], "<h1>The party</h1><p>Once, there was a <strong>party</strong>.</p><p>There was:</p><ul><li><em>food</em>, and</li><li><em>drinks</em></li></ul><p>I</p><ol><li><em>ate</em>, and</li><li>I <em>drank</em></li></ol><p>After the party, someone showed me the following code:</p><pre><code>import gravity\n</code></pre><p>He even gave me his <a href=\"mailto:foo@example.com\">e-mail</a></p>")
+print("CPU time: "..tostring((os.clock()-startt)*1000).."ms")
