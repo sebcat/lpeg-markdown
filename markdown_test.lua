@@ -1,10 +1,10 @@
 #!/usr/bin/env lua
 -- vim: tabstop=2 shiftwidth=2 expandtab
 
-md = require "markdown"
+markdown = require "markdown"
 
 function expect(data, expected)
-  actual = md.markdown(data)
+  actual = markdown.parse(data)
   if actual ~=  expected then
     error(string.format("expected %q, was %q", expected, actual))
   else

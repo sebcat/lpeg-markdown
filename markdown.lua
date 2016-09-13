@@ -73,7 +73,7 @@ end
 
 local markdown = {}
 local parser = Ct(markdown_grammar())
-markdown.markdown = function(str)
+markdown.parse = function(str)
   local res = parser:match(str)
   if type(res) == "table" then
     return table.concat(res)
