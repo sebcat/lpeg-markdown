@@ -33,6 +33,11 @@ local function markdown_grammar()
     return i, table.concat(vals)
   end
 
+  local line_attr = function(sym, tagname)
+    return P(sym) * Cc(string.format("<%s>", tagname)) *((1-P(sym))^1/trim) *
+        Cc(string.format("</%s>", tagname)) * P(sym)
+  end
+
   return P{
     "markdown";
     NL = (P"\r"^-1 * P"\n")+-1,
@@ -40,18 +45,20 @@ local function markdown_grammar()
     OPTWS = V"WS"^0,
     anchortext = (1-P"]")^0,
     anchorref = (1-P")")^0,
-    anchor = Cmt(P"[" * C(V"anchortext") * P"]" * P"(" * C(V"anchorref") * P")", concat_anchor),
-    bold = P"**" * Cc"<strong>" * ((1-P"**")^1/trim) * Cc"</strong>" * P"**",
-    emphasis = P"*" * Cc"<em>" *((1-P"*")^1/trim) *Cc"</em>" * P"*",
-    code = P"`" * Cc"<code>" * ((1-P"`")^1/trim) * Cc"</code>" * P"`",
-    line = Cmt(Ct((V"anchor" + V"bold" + V"emphasis" + V"code" + C((1-V"NL")))^1), concat_matches),
+    anchor = Cmt(P"[" * C(V"anchortext") * P"]" *
+        P"(" * C(V"anchorref") * P")", concat_anchor),
+    line = Cmt(Ct((V"anchor" + line_attr("**", "strong") + line_attr("*", "em")
+        + line_attr("`", "code") + C((1-V"NL")))^1), concat_matches),
     lines = ((V"line")*V"NL")^1,
     paragraph = Cc"<p>" * V"lines" * V"NL" * Cc"</p>",
-    ulli = P"*" * V"OPTWS" * Cc"<li>" * (((V"line")^-1)/trim) * Cc"</li>" * V"NL",
+    ulli = P"*" * V"OPTWS" * Cc"<li>" * (((V"line")^-1)/trim) * Cc"</li>" *
+        V"NL",
     ul = Cc"<ul>" * V"ulli"^1 * Cc"</ul>",
-    olli = R"09"^1 * P"." * V"OPTWS" * Cc"<li>" * (((V"line")^-1)/trim) * Cc"</li>" * V"NL",
+    olli = R"09"^1 * P"." * V"OPTWS" * Cc"<li>" * (((V"line")^-1)/trim) *
+        Cc"</li>" * V"NL",
     ol = Cc"<ol>" * V"olli"^1 * Cc"</ol>",
-    codeblock = P"````" * V"NL" * Cc"<pre><code>" * C((1-P"````")^0) * Cc"</code></pre>" * P"````",
+    codeblock = P"````" * V"NL" * Cc"<pre><code>" * C((1-P"````")^0) *
+        Cc"</code></pre>" * P"````",
     content = V"ul" + V"ol" + V"codeblock" + V"paragraph",
     h1 = header_grammar(1),
     h2 = header_grammar(2),
